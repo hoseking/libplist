@@ -171,10 +171,11 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
                     | (((x) & 0x00000000FF000000ull) << 8) \
                     | (((x) & 0x0000000000FF0000ull) << 24) \
                     | (((x) & 0x000000000000FF00ull) << 40) \
-                    | (((x) & 0x00000000000000FFull) << 56)) 
+                    | (((x) & 0x00000000000000FFull) << 56))
 #endif
 #endif
 
+#ifndef _MSC_VER
 #define UINT_TO_HOST(x, n) \
 	({ \
 		union plist_uint_ptr __up; \
@@ -185,13 +186,56 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 		(n == 2 ? be16toh( get_unaligned(__up.u16ptr) ) : \
 		*__up.u8ptr )))); \
 	})
+#else
+uint64_t get_unaligned_64(uint64_t *ptr)
+{
+	uint64_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
+}
 
+uint32_t get_unaligned_32(uint32_t *ptr)
+{
+	uint32_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
+}
+
+uint16_t get_unaligned_16(uint16_t *ptr)
+{
+	uint16_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
+}
+
+uint64_t UINT_TO_HOST(void *x, uint8_t n)
+{
+	union plist_uint_ptr __up;
+	__up.src = x;
+	return (n == 8 ? be64toh(get_unaligned_64(__up.u64ptr)) :
+		   (n == 4 ? be32toh(get_unaligned_32(__up.u32ptr)) :
+		   (n == 3 ? uint24_from_be(__up) :
+		   (n == 2 ? be16toh(get_unaligned_16(__up.u16ptr)) :
+		             *__up.u8ptr))));
+}
+#endif
+
+#ifndef _MSC_VER
 #define be64dec(x) \
 	({ \
 		union plist_uint_ptr __up; \
 		__up.src = x; \
 		be64toh( get_unaligned(__up.u64ptr) ); \
 	})
+#else
+uint64_t be64dec(char *x)
+{
+	union plist_uint_ptr __up;
+	__up.src = x;
+	return be64toh(get_unaligned_64(__up.u64ptr));
+}
+#endif
+
 
 #define get_needed_bytes(x) \
 		( ((uint64_t)x) < (1ULL << 8) ? 1 : \
@@ -315,7 +359,7 @@ static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, l
 
 	uint16_t wc;
 	uint32_t w;
-	int read_lead_surrogate = 0; 
+	int read_lead_surrogate = 0;
 
 	while (i < len) {
 		wc = unistr[i++];
@@ -324,7 +368,7 @@ static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, l
 				read_lead_surrogate = 1;
 				w = 0x010000 + ((wc & 0x3FF) << 10);
 			} else {
-				// This is invalid, the next 16 bit char should be a trail surrogate. 
+				// This is invalid, the next 16 bit char should be a trail surrogate.
 				// Handling error by skipping.
 				read_lead_surrogate = 0;
 			}
@@ -663,7 +707,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     return plist;
 }
 
-PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
+void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 {
     char *trailer = NULL;
 
@@ -1075,7 +1119,7 @@ static uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, 
 
 }
 
-PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
+void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 {
     ptrarray_t* objects = NULL;
     hashtable_t* ref_table = NULL;

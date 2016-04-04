@@ -22,29 +22,17 @@
 #ifndef PLIST_H
 #define PLIST_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "plist/plist.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #pragma warning(disable:4244)
-#endif
-
-#ifdef WIN32
-  #define PLIST_API __declspec( dllexport )
+#include <winsock2.h>
 #else
-  #ifdef HAVE_FVISIBILITY
-    #define PLIST_API __attribute__((visibility("default")))
-  #else
-    #define PLIST_API
-  #endif
+#include <sys/time.h>
 #endif
 
 struct plist_data_s

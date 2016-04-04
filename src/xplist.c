@@ -21,6 +21,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <string.h>
 #include <assert.h>
@@ -538,7 +541,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
                         nodedata->type = PLIST_UID;
                         nodedata->length = sizeof(uint64_t);
                         nodedata->intval = val;
-                    } 
+                    }
                 }
             }
             continue;
@@ -546,7 +549,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
     }
 }
 
-PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
+void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 {
     xmlDocPtr plist_doc = NULL;
     xmlNodePtr root_node = NULL;
@@ -589,7 +592,7 @@ static xmlParserInputPtr plist_xml_external_entity_loader(const char *URL, const
     return NULL;
 }
 
-PLIST_API void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
+void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 {
     /* CVE-2013-0339: disable external entity loading to prevent XXE vulnerability */
     xmlSetExternalEntityLoader(plist_xml_external_entity_loader);
