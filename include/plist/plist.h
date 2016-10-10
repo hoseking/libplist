@@ -46,7 +46,7 @@ extern "C"
 	#define libplist_API
 #endif
 
-#ifdef _MSC_VER
+#if (_MSC_VER <= 1800)
     typedef __int8 int8_t;
     typedef __int16 int16_t;
     typedef __int32 int32_t;
